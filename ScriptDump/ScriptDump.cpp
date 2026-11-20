@@ -109,21 +109,122 @@ void hook(lua_State* L, const char* name)
     lua_setglobal(L, name);
 }
 
+
+int WaitForChild(lua_State* L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    const char* name = luaL_checkstring(L, 2);
+
+    lua_getfield(L, 1, name);
+
+    if (lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_newtable(L);
+
+        lua_getglobal(L, "SharedMeta");
+        lua_setmetatable(L, -2);
+
+        lua_pushvalue(L, -1);
+        lua_setfield(L, 1, name);
+    }
+
+    return 1;
+}
+
+void registerEnum(lua_State* L)
+{
+    lua_newtable(L); // Enum
+    lua_newtable(L); // Enum.ZIndexBehavior
+    lua_newtable(L); // Enum.ZIndexBehavior.Global
+
+    lua_pushstring(L, "Global");
+    lua_setfield(L, -2, "Name");
+
+    lua_setfield(L, -2, "Global");
+    lua_newtable(L); // Enum.ZIndexBehavior.Sibling
+
+    lua_pushstring(L, "Sibling");
+    lua_setfield(L, -2, "Name");
+
+    lua_setfield(L, -2, "Sibling");
+
+    lua_setfield(L, -2, "ZIndexBehavior");
+    
+    lua_setglobal(L, "Enum");
+}
+
 void registerGame(lua_State* L)
 {
+    lua_newtable(L); // Shared Metatable (Stores functions which are globally avaiable for the game table and its subtables)
+    lua_pushvalue(L, -1);
+    lua_setglobal(L, "SharedMeta");
+    lua_pushcfunction(L, WaitForChild, "WaitForChild");
+    lua_setfield(L, -2, "WaitForChild");
+
+    lua_newtable(L);
+    lua_pushvalue(L, -2);
+    lua_setfield(L, -2, "__index");
+
+    
     lua_newtable(L); // game
+    lua_pushvalue(L, -2);
+    lua_setmetatable(L, -2);
+
     lua_pushcfunction(L, HttpGet, "HttpGet");
     lua_setfield(L, -2, "HttpGet");
-    lua_setglobal(L, "game");
 
     // How does stacking work in this shi??????  I DONT UNDERSTAND LUAU IN C++
     lua_newtable(L); // game.Players
+    lua_pushvalue(L, -3);
+    lua_setmetatable(L, -2);
+
     lua_newtable(L); // game.Players.LocalPlayer
+    lua_pushvalue(L, -4);
+    lua_setmetatable(L, -2);
 
+    lua_setfield(L, -2, "LocalPlayer");
+    lua_setfield(L, -2, "Players");
 
+    lua_setglobal(L, "game");
+
+    lua_pop(L, 2);
 }
 
+// FindTable is AI-generated
+bool FindTable(lua_State* L, int parent, int target, std::string path)
+{
+    parent = lua_absindex(L, parent);
+    target = lua_absindex(L, target);
 
+    lua_pushnil(L);
+
+    while (lua_next(L, parent) != 0)
+    {
+        if (lua_istable(L, -1))
+        {
+            std::string name = path + "." + lua_tostring(L, -2);
+
+            if (lua_rawequal(L, -1, target))
+            {
+                lua_pop(L, 2);
+                file << name << std::endl;
+                return true;
+            }
+
+            if (FindTable(L, -1, target, name))
+            {
+                lua_pop(L, 2);
+                return true;
+            }
+        }
+
+        lua_pop(L, 1);
+    }
+
+    return false;
+}
 
 
 int InstanceNew(lua_State* L)
@@ -160,10 +261,38 @@ int InstanceNew(lua_State* L)
         const char* key = luaL_checkstring(L, 2);
 
         file << "i" << lua_tostring(L, lua_upvalueindex(2))
-            << "." << key << " = \"";
+            << "." << key << " = ";
 
-        luaL_tolstring(L, 3, nullptr);
-        file << lua_tostring(L, -1) << "\"\n";
+        if (lua_isnumber(L, 3)) {
+            file << lua_tostring(L, -1) << "\n";
+        }
+        else if (lua_istable(L, 3)) {
+            lua_getglobal(L, "game");
+            if (!FindTable(L, -1, 3, "game"))
+            {
+                lua_pop(L, 1);
+                lua_getglobal(L, "Enum");
+                if (!FindTable(L, -1, 3, "Enum")) {
+                    lua_pop(L, 1);
+                    lua_getfield(L, 3, "id");
+                    if (!lua_isnil(L, -1)) {
+                        const char* id = lua_tostring(L, -1);
+                        file << id;
+                    }
+                    else
+                        file << "nil\n";
+                }
+            }
+        }
+        else if (lua_isstring(L, 3)) {
+            luaL_tolstring(L, 3, nullptr);
+            file << "\"" << lua_tostring(L, -1) << "\"\n";
+        }
+        else if (lua_isboolean(L, 3)) {
+            luaL_tolstring(L, 3, nullptr);
+            file << lua_tostring(L, -1) << "\n";
+        }
+
         lua_pop(L, 1);
 
         lua_pushvalue(L, 2);
@@ -205,6 +334,7 @@ int main()
     hook(L, "print");
     hook(L, "loadstring");
 
+    registerEnum(L);
     registerGame(L);
     Instance(L);
 
