@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="ScriptDump/ScriptDump.vcxproj" />
+  <Project Path="ScriptDump/ScriptDump.vcxproj" Id="7fc7f01d-a275-45fe-8936-4227c721dc59" />
 </Solution>
