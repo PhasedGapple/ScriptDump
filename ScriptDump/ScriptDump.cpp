@@ -226,6 +226,27 @@ bool FindTable(lua_State* L, int parent, int target, std::string path)
     return false;
 }
 
+bool isColor3(lua_State* L)
+{
+    int table = lua_absindex(L, 3);
+    
+    lua_getfield(L, table, "R");
+    bool hasR = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, table, "G");
+    bool hasG = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, table, "B");
+    bool hasB = !lua_isnil(L, -1);
+    lua_pop(L, 1);
+
+    if (hasR && hasG && hasB)
+        return true;
+    else
+        return false;
+}
 
 int InstanceNew(lua_State* L)
 {
@@ -277,7 +298,26 @@ int InstanceNew(lua_State* L)
                     lua_getfield(L, 3, "id");
                     if (!lua_isnil(L, -1)) {
                         const char* id = lua_tostring(L, -1);
-                        file << id;
+                        file << id << "\n";
+                        lua_pop(L, 1);
+                    }
+                    else if (isColor3(L))
+                    {
+                        lua_pop(L, 1);
+                        lua_getfield(L, 3, "R");
+                        double r = lua_tonumber(L, -1);
+                        lua_pop(L, 1);
+
+                        lua_getfield(L, 3, "G");
+                        double g = lua_tonumber(L, -1);
+                        lua_pop(L, 1);
+
+                        lua_getfield(L, 3, "B");
+                        double b = lua_tonumber(L, -1);
+                        lua_pop(L, 1);
+
+
+                        file << "Color3.new(" << r << ", " << g << ", " << b << ")\n";
                     }
                     else
                         file << "nil\n";
@@ -309,6 +349,36 @@ int InstanceNew(lua_State* L)
     return 1;
 }
 
+int Color3fromRGB(lua_State* L)
+{
+    int r = luaL_checkinteger(L, 1);
+    int g = luaL_checkinteger(L, 2);
+    int b = luaL_checkinteger(L, 3);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, r / 255.0);
+    lua_setfield(L, -2, "R");
+
+    lua_pushnumber(L, g / 255.0);
+    lua_setfield(L, -2, "G");
+
+    lua_pushnumber(L, b / 255.0);
+    lua_setfield(L, -2, "B");
+
+    return 1;
+}
+
+void registerColor3(lua_State* L)
+{
+    lua_newtable(L); // Color3
+
+    lua_pushcfunction(L, Color3fromRGB, "fromRGB");
+    lua_setfield(L, -2, "fromRGB");
+
+    lua_setglobal(L, "Color3");
+}
+
 void Instance(lua_State* L)
 {
     lua_newtable(L);
@@ -336,6 +406,7 @@ int main()
 
     registerEnum(L);
     registerGame(L);
+    registerColor3(L);
     Instance(L);
 
     const char* code = R"(
