@@ -14,6 +14,7 @@ std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<int> dist(1000, 9999);
 
+std::string lastid;
 
 size_t Write(void* data, size_t size, size_t nmemb, std::string* out)
 {
@@ -153,7 +154,7 @@ void registerEnum(lua_State* L)
     lua_setfield(L, -2, "ZIndexBehavior");
 
 
-    lua_newtable(L); // Enum.Font - soo many fonts😭ALSO I DIDNT USE AI FOR THE SOB
+    lua_newtable(L); // Enum.Font - soo many fonts😭ALSO I DIDNT USE AI SO DONT CALL THIS LINE AI BECAUSE I PUT EMOJI
 
     const char* fonts[] = {
         "Legacy", "Arial", "ArialBold",
@@ -314,6 +315,9 @@ int InstanceNew(lua_State* L)
     lua_pushstring(L, name);
     lua_setfield(L, -2, "type");
 
+    lua_pushstring(L, name);
+    lua_setfield(L, -2, "Name");
+
     int id = dist(gen);
 
     lua_newtable(L);
@@ -337,9 +341,15 @@ int InstanceNew(lua_State* L)
     lua_pushcclosure(L, [](lua_State* L) -> int {
         const char* key = luaL_checkstring(L, 2);
         int base = lua_gettop(L);
+        std::string id = ("i" + std::string(lua_tostring(L, lua_upvalueindex(2))));
 
-        file << "i" << lua_tostring(L, lua_upvalueindex(2))
-            << "." << key << " = ";
+        if (!(lastid == id))
+        {
+            file << "\n";
+            lastid = id;
+        }
+
+        file << id << "." << key << " = ";
 
         if (lua_isnumber(L, 3)) {
             file << lua_tostring(L, -1) << "\n";
@@ -413,7 +423,13 @@ int InstanceNew(lua_State* L)
             luaL_tolstring(L, 3, nullptr);
             file << lua_tostring(L, -1) << "\n";
         }
-
+        
+        if (strcmp(key, "Parent") == 0 && lua_istable(L, 3))
+        {
+            lua_getfield(L, lua_upvalueindex(1), "Name");
+            lua_pushvalue(L, 1);
+            lua_rawset(L, 3);
+        }
         lua_settop(L, base);
 
         lua_pushvalue(L, 2);
