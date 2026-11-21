@@ -248,6 +248,26 @@ bool isColor3(lua_State* L)
         return false;
 }
 
+bool isUDim2(lua_State* L)
+{
+    int table = lua_absindex(L, 3);
+
+    lua_getfield(L, table, "X");
+    lua_getfield(L, -1, "Scale");
+    bool hasX = !lua_isnil(L, -1);
+    lua_pop(L, 2);
+
+    lua_getfield(L, table, "Y");
+    lua_getfield(L, -1, "Scale");
+    bool hasY = !lua_isnil(L, -1);
+    lua_pop(L, 2);
+
+    if (hasX && hasY)
+        return true;
+    else
+        return false;
+}
+
 int InstanceNew(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
@@ -280,6 +300,7 @@ int InstanceNew(lua_State* L)
     lua_pushstring(L, std::to_string(id).c_str());
     lua_pushcclosure(L, [](lua_State* L) -> int {
         const char* key = luaL_checkstring(L, 2);
+        int base = lua_gettop(L);
 
         file << "i" << lua_tostring(L, lua_upvalueindex(2))
             << "." << key << " = ";
@@ -319,6 +340,30 @@ int InstanceNew(lua_State* L)
 
                         file << "Color3.new(" << r << ", " << g << ", " << b << ")\n";
                     }
+                    else if (isUDim2(L))
+                    {
+                        lua_pop(L, 1);
+                        
+                        lua_getfield(L, 3, "X");
+                        lua_getfield(L, -1, "Scale");
+                        double xs = lua_tonumber(L, -1);
+                        lua_pop(L, 1);
+                        lua_getfield(L, -1, "Offset");
+                        double xo = lua_tonumber(L, -1);
+                        lua_pop(L, 2);
+
+
+                        lua_getfield(L, 3, "Y");
+                        lua_getfield(L, -1, "Scale");
+                        double ys = lua_tonumber(L, -1);
+                        lua_pop(L, 1);
+                        lua_getfield(L, -1, "Offset");
+                        double yo = lua_tonumber(L, -1);
+                        lua_pop(L, 2);
+
+
+                        file << "UDim2.new(" << xs << ", " << xo << ", " << ys << ", " << yo << ")\n";
+                    }
                     else
                         file << "nil\n";
                 }
@@ -333,7 +378,7 @@ int InstanceNew(lua_State* L)
             file << lua_tostring(L, -1) << "\n";
         }
 
-        lua_pop(L, 1);
+        lua_settop(L, base);
 
         lua_pushvalue(L, 2);
         lua_pushvalue(L, 3);
@@ -369,6 +414,33 @@ int Color3fromRGB(lua_State* L)
     return 1;
 }
 
+int UDim2new(lua_State* L)
+{
+    double xs = luaL_checknumber(L, 1);
+    double xo = luaL_checknumber(L, 2);
+    double ys = luaL_checknumber(L, 3);
+    double yo = luaL_checknumber(L, 4);
+
+    lua_newtable(L); // Return Table
+
+
+    lua_newtable(L); // X
+    lua_pushnumber(L, xs);
+    lua_setfield(L, -2, "Scale");
+    lua_pushnumber(L, xo);
+    lua_setfield(L, -2, "Offset");
+    lua_setfield(L, -2, "X");
+
+    lua_newtable(L); // Y
+    lua_pushnumber(L, ys);
+    lua_setfield(L, -2, "Scale");
+    lua_pushnumber(L, yo);
+    lua_setfield(L, -2, "Offset");
+    lua_setfield(L, -2, "Y");
+
+    return 1;
+}
+
 void registerColor3(lua_State* L)
 {
     lua_newtable(L); // Color3
@@ -377,6 +449,16 @@ void registerColor3(lua_State* L)
     lua_setfield(L, -2, "fromRGB");
 
     lua_setglobal(L, "Color3");
+}
+
+void registerUDim2(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, UDim2new, "new");
+    lua_setfield(L, -2, "new");
+
+    lua_setglobal(L, "UDim2");
 }
 
 void Instance(lua_State* L)
@@ -407,6 +489,7 @@ int main()
     registerEnum(L);
     registerGame(L);
     registerColor3(L);
+    registerUDim2(L);
     Instance(L);
 
     const char* code = R"(
