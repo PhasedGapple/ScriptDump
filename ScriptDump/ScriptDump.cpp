@@ -151,7 +151,43 @@ void registerEnum(lua_State* L)
     lua_setfield(L, -2, "Sibling");
 
     lua_setfield(L, -2, "ZIndexBehavior");
+
+
+    lua_newtable(L); // Enum.Font - soo many fonts😭ALSO I DIDNT USE AI FOR THE SOB
+
+    const char* fonts[] = {
+        "Legacy", "Arial", "ArialBold",
+        "SourceSans", "SourceSansBold", "SourceSansLight",
+        "SourceSansItalic", "Bodoni", "Garamond",
+        "Cartoon", "Code", "Highway", "SciFi",
+        "Arcade", "Fantasy", "Antique",
+        "SourceSansSemibold",
+        "Gotham", "GothamMedium", "GothamBold", "GothamBlack",
+        "AmaticSC", "Bangers", "Creepster", "DenkOne",
+        "Fondamento", "FredokaOne", "GrenzeGotisch",
+        "IndieFlower", "JosefinSans", "Jura", "Kalam",
+        "LuckiestGuy", "Merriweather", "Michroma", "Nunito",
+        "Oswald", "PatrickHand", "PermanentMarker",
+        "Roboto", "RobotoCondensed", "RobotoMono",
+        "Sarpanch", "SpecialElite", "TitilliumWeb", "Ubuntu",
+        "BuilderSans", "BuilderSansMedium", "BuilderSansBold",
+        "BuilderSansExtraBold", "Arimo", "ArimoBold",
+        "Unknown"
+    };
+
+    for (const char* font : fonts)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, font);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, font);
+    }
     
+    lua_setfield(L, -2, "Font");
+
+
     lua_setglobal(L, "Enum");
 }
 
