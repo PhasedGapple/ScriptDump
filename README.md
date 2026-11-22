@@ -11,7 +11,7 @@ Make sure you have [VCPKG](https://vcpkg.io/en/) installed. Then run ``vcpkg ins
 ## Running
 Coming soon.
 ## Code used which is not mine
-- https://github.com/luau-lang/luau - used to run luau codoe
+- https://github.com/luau-lang/luau - used to run luau code
 - https://github.com/xgladius/luauDec - used to decompile proto
 ## Usage of AI
 I used AI for helping me find functions, document stuff and write some of the functions. I also commented it in the code when AI wrote a function.
