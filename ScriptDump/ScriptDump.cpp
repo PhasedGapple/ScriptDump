@@ -5,7 +5,9 @@
 #include <luau/lua.h>
 #include <luau/lualib.h>
 #include <luau/luacode.h>
+#include <luau/lobject.h>
 #include <random>
+#include <Decompiler/Decompile.h>
 
 std::ofstream file;
 
@@ -22,6 +24,64 @@ size_t Write(void* data, size_t size, size_t nmemb, std::string* out)
     return size * nmemb;
 }
 
+
+// FindTable is AI-generated
+bool FindTable(lua_State* L, int parent, int target, std::string path)
+{
+    parent = lua_absindex(L, parent);
+    target = lua_absindex(L, target);
+
+    lua_pushnil(L);
+
+    while (lua_next(L, parent) != 0)
+    {
+        if (lua_istable(L, -1))
+        {
+            std::string name = path + "." + lua_tostring(L, -2);
+
+            if (lua_rawequal(L, -1, target))
+            {
+                lua_pop(L, 2);
+                file << name << std::endl;
+                return true;
+            }
+
+            if (FindTable(L, -1, target, name))
+            {
+                lua_pop(L, 2);
+                return true;
+            }
+        }
+
+        lua_pop(L, 1);
+    }
+
+    return false;
+}
+
+
+int Connect(lua_State* L)
+{
+    luaL_checktype(L, 2, LUA_TFUNCTION);
+
+    if (!lua_isLfunction(L, 2))
+    {
+        std::cout << "Faulty code! An object which isnt a variable has been passed to :Connect()";
+        return 0;
+    }
+
+    lua_getfield(L, 1, "_eventname");
+    const char* event = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "id");
+    const char* id = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    file << "\n" << id << "." << event << ":Connect(function(), {}) -- Functions cannot get captured.\n";
+
+    return 0;
+}
 
 int HttpGet(lua_State* L)
 {
@@ -192,6 +252,60 @@ void registerEnum(lua_State* L)
     lua_setglobal(L, "Enum");
 }
 
+int SetCore(lua_State* L)
+{
+    const char* key = luaL_checkstring(L, 2);
+
+    file << "\ngame:GetService(\"StarterGui\"):SetCore(\"" << key << "\", ";
+
+    bool first = true;
+
+    // Following code is AI-generated.
+    if (lua_istable(L, 3))
+    {
+        bool first = true;
+        file << "{";
+
+        lua_pushnil(L);
+        while (lua_next(L, 3) != 0)
+        {
+            if (!first)
+                file << ", ";
+
+            first = false;
+
+            if (lua_isstring(L, -2))
+                file << lua_tostring(L, -2) << " = ";
+
+            if (lua_isstring(L, -1))
+                file << "\"" << lua_tostring(L, -1) << "\"";
+            else if (lua_isnumber(L, -1))
+                file << lua_tonumber(L, -1);
+            else if (lua_isboolean(L, -1))
+                file << (lua_toboolean(L, -1) ? "true" : "false");
+            else
+                file << "nil";
+
+            lua_pop(L, 1);
+        }
+
+        file << "}";
+    }
+    else if (lua_isstring(L, 3))
+        file << "\"" << lua_tostring(L, 3) << "\"";
+    else if (lua_isnumber(L, 3))
+        file << lua_tonumber(L, 3);
+    else if (lua_isboolean(L, 3))
+        file << (lua_toboolean(L, 3) ? "true" : "false");
+    else
+        file << "nil";
+
+    file << ")\n";
+
+
+    return 0;
+}
+
 void registerGame(lua_State* L)
 {
     lua_newtable(L); // Shared Metatable (Stores functions which are globally avaiable for the game table and its subtables)
@@ -199,6 +313,17 @@ void registerGame(lua_State* L)
     lua_setglobal(L, "SharedMeta");
     lua_pushcfunction(L, WaitForChild, "WaitForChild");
     lua_setfield(L, -2, "WaitForChild");
+
+    lua_pushcfunction(L, WaitForChild, "GetService");
+    lua_setfield(L, -2, "GetService");
+
+    lua_pushcfunction(L, WaitForChild, "FindFirstChildWhichIsA");
+    lua_setfield(L, -2, "FindFirstChildWhichIsA");
+
+    lua_newtable(L); // game.StarterGui
+    lua_pushcfunction(L, SetCore, "SetCore");
+    lua_setfield(L, -2, "SetCore");
+    lua_setfield(L, -2, "StarterGui");
 
     lua_newtable(L);
     lua_pushvalue(L, -2);
@@ -218,6 +343,22 @@ void registerGame(lua_State* L)
     lua_setmetatable(L, -2);
 
     lua_newtable(L); // game.Players.LocalPlayer
+
+    lua_newtable(L); // game.Players.LocalPlayer.CharacterAdded
+    lua_pushcfunction(L, Connect, "Connect");
+    lua_setfield(L, -2, "Connect");
+
+    lua_pushcfunction(L, Connect, "connect");
+    lua_setfield(L, -2, "connect");
+
+    lua_pushstring(L, "CharacterAdded");
+    lua_setfield(L, -2, "_eventname");
+
+    lua_pushstring(L, "game:GetService(\"Players\").LocalPlayer");
+    lua_setfield(L, -2, "id");
+
+    lua_setfield(L, -2, "CharacterAdded");
+
     lua_pushvalue(L, -4);
     lua_setmetatable(L, -2);
 
@@ -229,39 +370,7 @@ void registerGame(lua_State* L)
     lua_pop(L, 2);
 }
 
-// FindTable is AI-generated
-bool FindTable(lua_State* L, int parent, int target, std::string path)
-{
-    parent = lua_absindex(L, parent);
-    target = lua_absindex(L, target);
 
-    lua_pushnil(L);
-
-    while (lua_next(L, parent) != 0)
-    {
-        if (lua_istable(L, -1))
-        {
-            std::string name = path + "." + lua_tostring(L, -2);
-
-            if (lua_rawequal(L, -1, target))
-            {
-                lua_pop(L, 2);
-                file << name << std::endl;
-                return true;
-            }
-
-            if (FindTable(L, -1, target, name))
-            {
-                lua_pop(L, 2);
-                return true;
-            }
-        }
-
-        lua_pop(L, 1);
-    }
-
-    return false;
-}
 
 bool isColor3(lua_State* L)
 {
@@ -441,6 +550,33 @@ int InstanceNew(lua_State* L)
     lua_setfield(L, -2, "__newindex");
 
     lua_setmetatable(L, proxy);
+    
+    const char* connectEvents[] = {
+    "MouseButton1Click",
+    "MouseButton1Down",
+    "MouseButton1Up",
+    "MouseLeave"
+    };
+
+    for (const char* eventname : connectEvents)
+    {
+        lua_newtable(L); // Event Name
+
+        lua_pushcfunction(L, Connect, "Connect");
+        lua_setfield(L, -2, "Connect");
+
+        lua_pushcfunction(L, Connect, "connect");
+        lua_setfield(L, -2, "connect");
+
+        lua_pushstring(L, std::string("i" + std::to_string(id)).c_str());
+        lua_setfield(L, -2, "id");
+
+        lua_pushstring(L, eventname);
+        lua_setfield(L, -2, "_eventname");
+
+        lua_setfield(L, storage, eventname);
+    }
+
     lua_remove(L, storage);
 
     return 1;
@@ -545,16 +681,25 @@ int main()
     Instance(L);
 
     const char* code = R"(
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
+    loadstring(game:HttpGet("https://pastebin.com/raw/kHhLTx1x"))()
 )";
 
     size_t bytecodeSize;
     char* bytecode = luau_compile(code, strlen(code), nullptr, &bytecodeSize);
     
-    if (luau_load(L, "script", bytecode, bytecodeSize, 0) == 0)
-        lua_pcall(L, 0, 0, 0);
+    int result = luau_load(L, "script", bytecode, bytecodeSize, 0);
+
+    if (result == 0)
+    {
+        result = lua_pcall(L, 0, 0, 0);
+
+        if (result != 0)
+            std::cerr << "Runtime error: " << lua_tostring(L, -1) << '\n';
+    }
     else
-        std::cerr << lua_tostring(L, -1) << '\n';
+    {
+        std::cerr << "Load error: " << lua_tostring(L, -1) << '\n';
+    }
 
     free(bytecode);
     lua_close(L);
