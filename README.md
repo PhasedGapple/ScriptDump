@@ -1,5 +1,7 @@
 # ScriptDump
-Dump Obfuscated or normal Roblox Scripts and get a readable dump!
+Dump Obfuscated or normal Roblox Scripts and get a readable dump! (Doesn't work on very advanced/unoptimized ones due to intergrety checks)
+<img width="1906" height="754" alt="image" src="https://github.com/user-attachments/assets/bdc4ec95-28e6-45e8-8586-1a2a0252dabd" />
+
 ## How does this work?
 This has it's own Roblox-Luau replica which logs executed code by adding our own implementation of Roblox-Luau to imitate roblox.
 ## Scripts to test this on
