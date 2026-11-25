@@ -19,6 +19,7 @@ std::string lastid;
 
 
 int InstanceNew(lua_State* L);
+int TweenCreate(lua_State* L);
 
 
 size_t Write(void* data, size_t size, size_t nmemb, std::string* out)
@@ -260,6 +261,28 @@ int GetService(lua_State* L)
     const char* name = luaL_checkstring(L, 2);
 
     lua_getfield(L, 1, name);
+
+    if (strcmp(name, "TweenService") == 0)
+    {
+        bool hasCreate = false;
+        if (lua_istable(L, -1))
+        {
+            lua_getfield(L, -1, "Create");
+            hasCreate = lua_isfunction(L, -1);
+            lua_pop(L, 1);
+        }
+
+        if (hasCreate)
+            return 1;
+
+        lua_pop(L, 1);
+        lua_newtable(L);
+        lua_pushcfunction(L, TweenCreate, "Create");
+        lua_setfield(L, -2, "Create");
+        lua_pushvalue(L, -1);
+        lua_setfield(L, 1, name);
+        return 1;
+    }
 
     if (!lua_isnil(L, -1))
         return 1;
@@ -1049,6 +1072,7 @@ int InstanceNew(lua_State* L)
         "Heartbeat",
         "Stepped",
         "Died",
+        "Destroying",
         "CharacterAdded",
         "CharacterRemoving",
         "Changed",
