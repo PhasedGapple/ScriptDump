@@ -437,6 +437,41 @@ void registerVector2(lua_State* L)
     lua_setglobal(L, "Vector2");
 }
 
+int Rectnew(lua_State* L)
+{
+    double minX = luaL_optnumber(L, 1, 0);
+    double maxX = luaL_optnumber(L, 2, 0);
+    double minY = luaL_optnumber(L, 3, 0);
+    double maxY = luaL_optnumber(L, 4, 0);
+
+    lua_newtable(L);
+
+    lua_newtable(L);
+    lua_pushnumber(L, minX);
+    lua_setfield(L, -2, "X");
+    lua_pushnumber(L, minY);
+    lua_setfield(L, -2, "Y");
+    lua_setfield(L, -2, "Min");
+
+    lua_newtable(L);
+    lua_pushnumber(L, maxX);
+    lua_setfield(L, -2, "X");
+    lua_pushnumber(L, maxY);
+    lua_setfield(L, -2, "Y");
+    lua_setfield(L, -2, "Max");
+
+    return 1;
+}
+
+void registerRect(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, Rectnew, "new");
+    lua_setfield(L, -2, "new");
+
+    lua_setglobal(L, "Rect");
+}
 
 int UDim_new(lua_State* L)
 {
@@ -967,6 +1002,7 @@ int main()
     registerColor3(L);
     registerUDim(L);
     registerUDim2(L);
+    registerRect(L);
     registerVector2(L);
     Instance(L);
 
