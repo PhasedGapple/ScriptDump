@@ -12,6 +12,5 @@ Make sure you have [VCPKG](https://vcpkg.io/en/) installed. Then run ``vcpkg ins
 Coming soon.
 ## Code used which is not mine
 - https://github.com/luau-lang/luau - used to run luau code
-- https://github.com/xgladius/luauDec - used to decompile proto
 ## Usage of AI
-I used AI for helping me find functions, document stuff and write some of the functions. I also commented it in the code when AI wrote a function.
+I used AI for helping me find functions, document stuff and write some of the functions. I also commented it in the code when AI wrote a function. **Most of the Code is made by me, but this definetely wouldn't be possible to make for me without AI because Lua in C++ looks really confusing but ChatGPT made me understand it**
