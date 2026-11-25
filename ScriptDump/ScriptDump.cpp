@@ -384,6 +384,23 @@ void registerEnum(lua_State* L)
 
     lua_setfield(L, -2, "TextYAlignment");
 
+    lua_newtable(L); // Enum.SortOrder
+    
+    const char* SortOrders[] = {
+        "Name", "LayoutOrder"
+    };
+
+    for (const char* order : SortOrders)
+    {
+        lua_newtable(L);
+        
+        lua_pushstring(L, order);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, order);
+    }
+
+
     lua_setglobal(L, "Enum");
 }
 
