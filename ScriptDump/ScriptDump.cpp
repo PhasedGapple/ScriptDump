@@ -388,6 +388,39 @@ int SetCore(lua_State* L)
     return 0;
 }
 
+int Vector2_new(lua_State* L)
+{
+    float x = luaL_optnumber(L, 1, 0);
+    float y = luaL_optnumber(L, 2, 0);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, x);
+    lua_setfield(L, -2, "X");
+
+    lua_pushnumber(L, x);
+    lua_setfield(L, -2, "Y");
+
+    return 1;
+}
+
+void registerVector2(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, Vector2_new, "new");
+    lua_setfield(L, -2, "new");
+
+    lua_pushcfunction(L, Vector2_new, "zero");
+    lua_setfield(L, -2, "zero");
+
+    lua_pushcfunction(L, Vector2_new, "one");
+    lua_setfield(L, -2, "one");
+
+    lua_setglobal(L, "Vector2");
+}
+
+
 int GetMouse(lua_State* L)
 {
     lua_newtable(L);
@@ -400,6 +433,7 @@ int GetMouse(lua_State* L)
 
     return 1;
 }
+
 
 void registerGame(lua_State* L)
 {
@@ -865,6 +899,7 @@ int main()
     registerGame(L);
     registerColor3(L);
     registerUDim2(L);
+    registerVector2(L);
     Instance(L);
 
     const char* code = R"(
