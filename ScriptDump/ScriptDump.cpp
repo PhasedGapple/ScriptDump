@@ -548,6 +548,33 @@ int GetMouse(lua_State* L)
     return 1;
 }
 
+int TweenInfo_new(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushvalue(L, 1);
+    lua_setfield(L, -2, "Time");
+
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "EasingStyle");
+
+    return 1;
+}
+
+int TweenPlay(lua_State* L)
+{
+    return 0;
+}
+
+int TweenCreate(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, TweenPlay, "Play");
+    lua_setfield(L, -2, "Play");
+
+    return 1;
+}
 
 void registerGame(lua_State* L)
 {
@@ -622,7 +649,11 @@ void registerGame(lua_State* L)
 
     lua_pushcfunction(L, Wait, "wait");
     lua_setfield(L, -2, "wait");
-
+    
+    lua_newtable(L); // game.TweenService
+    lua_pushcfunction(L, TweenCreate, "Create");
+    lua_setfield(L, -2, "Create");
+    lua_setfield(L, -2, "TweenService");
 
     lua_pushstring(L, "CharacterAdded");
     lua_setfield(L, -2, "_eventname");
