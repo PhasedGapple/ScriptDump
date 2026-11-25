@@ -1212,7 +1212,7 @@ void Instance(lua_State* L)
 }
 
 
-int main()
+int main(int argc, char* argv[])
 {
     file.open("dump.lua");
     loadstringfile.open("loadstringcalls.lua");
@@ -1238,28 +1238,36 @@ int main()
     registerVector2(L);
     registerTweenInfo(L);
     Instance(L);
-
-    const char* code = R"(
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/0x100C/Roblox-Scripts/refs/heads/main/s0ulzV3.lua"))()
-)";
-
-    size_t bytecodeSize;
-    char* bytecode = luau_compile(code, strlen(code), nullptr, &bytecodeSize);
     
-    int result = luau_load(L, "script", bytecode, bytecodeSize, 0);
-
-    if (result == 0)
+    // AI made the File loading.
+    if (argc > 1)
     {
-        result = lua_pcall(L, 0, 0, 0);
+        std::ifstream input(argv[1], std::ios::binary);
+        std::string code((std::istreambuf_iterator<char>(input)),
+            std::istreambuf_iterator<char>());
+
+        if (!input.is_open())
+        {
+            std::cerr << "Failed to open file!\n";
+            return 1;
+        }
+
+        size_t bytecodeSize;
+        char* bytecode = luau_compile(code.c_str(), code.size(), nullptr, &bytecodeSize);
+
+        int result = luau_load(L, argv[1], bytecode, bytecodeSize, 0);
+        free(bytecode);
+
+        if (result == 0)
+            result = lua_pcall(L, 0, 0, 0);
 
         if (result != 0)
             std::cerr << "Runtime error: " << lua_tostring(L, -1) << '\n';
     }
     else
     {
-        std::cerr << "Load error: " << lua_tostring(L, -1) << '\n';
+        std::cout << "Drag a Lua file onto the executable.\n";
     }
 
-    free(bytecode);
     lua_close(L);
 }
