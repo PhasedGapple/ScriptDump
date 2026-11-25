@@ -910,6 +910,7 @@ int InstanceNew(lua_State* L)
         "MouseLeave",
         "InputBegan",
         "InputEnded",
+        "InputChanged",
         "RenderStepped",
         "Heartbeat",
         "Stepped",
