@@ -388,6 +388,19 @@ int SetCore(lua_State* L)
     return 0;
 }
 
+int GetMouse(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushnumber(L, 0);
+    lua_setfield(L, -2, "X");
+
+    lua_pushnumber(L, 0);
+    lua_setfield(L, -2, "X");
+
+    return 1;
+}
+
 void registerGame(lua_State* L)
 {
     lua_newtable(L); // Shared Metatable (Stores functions which are globally avaiable for the game table and its subtables)
@@ -404,6 +417,9 @@ void registerGame(lua_State* L)
 
     lua_pushcfunction(L, HttpGet, "HttpGet");
     lua_setfield(L, -2, "HttpGet");
+
+    lua_pushcfunction(L, GetMouse, "GetMouse");
+    lua_setfield(L, -2, "GetMouse");
 
 
     lua_newtable(L); // game.StarterGui
@@ -841,7 +857,7 @@ int main()
     Instance(L);
 
     const char* code = R"(
-    loadstring(game:HttpGet("https://gist.githubusercontent.com/RedoGaming/2e5943498c487ea97df0d436dd35c234/raw/f0445b1afcd9193bfb94bc75dda7318310a22ad2/Rageflake!%2520New%2520OP%2520Roblox%2520Exploit%2520Hub!"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/0x100C/Roblox-Scripts/refs/heads/main/s0ulzV3.lua"))()
 )";
 
     size_t bytecodeSize;
