@@ -588,8 +588,10 @@ void registerGame(lua_State* L)
     lua_pushstring(L, "!Workspace"); // game.Workspace
     lua_call(L, 1, 1);
 
+    lua_pushstring(L, "FallenPartsDestroyHeight");
     lua_pushnumber(L, -500);
-    lua_setfield(L, -2, "FallenPartsDestroyHeight");
+    lua_rawset(L, -3);
+
     lua_pushvalue(L, -1); // game.Workspace = Workspace
     lua_setfield(L, -3, "Workspace");
     lua_setglobal(L, "workspace");
