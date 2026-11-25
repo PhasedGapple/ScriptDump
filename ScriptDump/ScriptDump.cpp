@@ -456,7 +456,36 @@ void registerEnum(lua_State* L)
 
     lua_setfield(L, -2, "StartCorner");
 
+    lua_newtable(L); // Enum.KeyCode
 
+    const char* KeyCodes[] = {
+        "Unknown", "A", "B", "C", "D", "E", "F", "G",
+        "H", "I", "J", "K", "L", "M", "N", "O",
+        "P", "Q", "R", "S", "T", "U", "V", "W",
+        "X", "Y", "Z",
+        "One", "Two", "Three", "Four", "Five",
+        "Six", "Seven", "Eight", "Nine", "Zero",
+        "Space", "Return", "Escape", "Backspace", "Tab",
+        "LeftShift", "RightShift", "LeftControl", "RightControl",
+        "LeftAlt", "RightAlt",
+        "Up", "Down", "Left", "Right",
+        "Insert", "Delete", "Home", "End",
+        "PageUp", "PageDown",
+        "F1", "F2", "F3", "F4", "F5", "F6",
+        "F7", "F8", "F9", "F10", "F11", "F12"
+    };
+
+    for (const char* Key : KeyCodes)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, Key);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, Key);
+    }
+
+    lua_setfield(L, -2, "KeyCode")
 
     lua_setglobal(L, "Enum");
 }
