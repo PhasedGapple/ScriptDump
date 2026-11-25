@@ -346,6 +346,8 @@ void registerEnum(lua_State* L)
         lua_setfield(L, -2, ScaleType);
     }
 
+    lua_setfield(L, -2, "Font");
+
     lua_setglobal(L, "Enum");
 }
 
