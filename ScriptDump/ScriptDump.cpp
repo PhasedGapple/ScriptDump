@@ -314,7 +314,7 @@ void registerEnum(lua_State* L)
         "Roboto", "RobotoCondensed", "RobotoMono",
         "Sarpanch", "SpecialElite", "TitilliumWeb", "Ubuntu",
         "BuilderSans", "BuilderSansMedium", "BuilderSansBold",
-        "BuilderSansExtraBold", "Arimo", "ArimoBold",
+        "BuilderSansExtraBold", "Arimo", "ArimoBold", "GothamSemibold",
         "Unknown"
     };
 
