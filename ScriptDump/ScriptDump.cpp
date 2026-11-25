@@ -348,6 +348,42 @@ void registerEnum(lua_State* L)
 
     lua_setfield(L, -2, "ScaleType");
 
+    lua_newtable(L); // Enum.TextXAlignment
+
+    const char* TextXAlignments[] = {
+        "Left", "Right", "Center"
+    };
+
+    for (const char* alignment : TextXAlignments)
+    {
+        lua_newtable(L);
+        
+        lua_pushstring(L, alignment);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, alignment);
+    }
+
+    lua_setfield(L, -2, "TextXAlignment");
+
+    lua_newtable(L); // Enum.TextYAlignment
+
+    const char* TextYAlignments[] = {
+        "Top", "Bottom", "Center"
+    };
+
+    for (const char* alignment : TextYAlignments)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, alignment);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, alignment);
+    }
+
+    lua_setfield(L, -2, "TextYAlignment");
+
     lua_setglobal(L, "Enum");
 }
 
