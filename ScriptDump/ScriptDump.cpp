@@ -685,6 +685,16 @@ int TweenCreate(lua_State* L)
     return 1;
 }
 
+void registerTweenInfo(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, TweenInfo_new, "new");
+    lua_setfield(L, -2, "new");
+
+    lua_setglobal(L, "TweenInfo");
+}
+
 int delay(lua_State* L)
 {
     luaL_checknumber(L, 1);
@@ -1201,6 +1211,7 @@ int main()
     registerUDim2(L);
     registerRect(L);
     registerVector2(L);
+    registerTweenInfo(L);
     Instance(L);
 
     const char* code = R"(
