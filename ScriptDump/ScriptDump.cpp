@@ -673,10 +673,27 @@ int TweenCreate(lua_State* L)
 {
     lua_newtable(L);
 
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "Target");
+
+    lua_pushvalue(L, 2);
+    lua_setfield(L, -2, "Properties");
+
     lua_pushcfunction(L, TweenPlay, "Play");
     lua_setfield(L, -2, "Play");
 
     return 1;
+}
+
+int delay(lua_State* L)
+{
+    luaL_checknumber(L, 1);
+    luaL_checktype(L, 2, LUA_TFUNCTION);
+
+    lua_pushvalue(L, 2);
+    lua_call(L, 0, 0);
+
+    return 0;
 }
 
 void registerGame(lua_State* L)
@@ -1171,6 +1188,9 @@ int main()
     lua_pushcfunction(L, lua_loadstring, "loadstring");
     lua_setglobal(L, "loadstring");
     
+    lua_pushcfunction(L, delay, "delay");
+    lua_setglobal(L, "delay");
+
     hook(L, "print");
     hook(L, "loadstring", true);
 
