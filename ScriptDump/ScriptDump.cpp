@@ -676,8 +676,8 @@ int TweenCreate(lua_State* L)
     lua_pushvalue(L, 2);
     lua_setfield(L, -2, "Target");
 
-    lua_pushvalue(L, 2);
-    lua_setfield(L, -4, "Properties");
+    lua_pushvalue(L, 4);
+    lua_setfield(L, -2, "Properties");
 
     lua_pushcfunction(L, TweenPlay, "Play");
     lua_setfield(L, -2, "Play");
