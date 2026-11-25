@@ -48,7 +48,7 @@ bool FindTable(lua_State* L, int parent, int target, std::string path)
             if (lua_rawequal(L, -1, target))
             {
                 lua_pop(L, 2);
-                file << name;
+                file << name << std::endl;
                 return true;
             }
 
