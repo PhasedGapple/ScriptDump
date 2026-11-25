@@ -7,16 +7,19 @@
 #include <luau/luacode.h>
 #include <luau/lobject.h>
 #include <random>
-#include <Decompiler/Decompile.h>
 
 std::ofstream file;
-
+std::ofstream loadstringfile;
 
 std::random_device rd;
 std::mt19937 gen(rd());
 std::uniform_int_distribution<int> dist(1000, 9999);
 
 std::string lastid;
+
+
+int InstanceNew(lua_State* L);
+
 
 size_t Write(void* data, size_t size, size_t nmemb, std::string* out)
 {
@@ -42,7 +45,7 @@ bool FindTable(lua_State* L, int parent, int target, std::string path)
             if (lua_rawequal(L, -1, target))
             {
                 lua_pop(L, 2);
-                file << name << std::endl;
+                file << name;
                 return true;
             }
 
@@ -59,14 +62,14 @@ bool FindTable(lua_State* L, int parent, int target, std::string path)
     return false;
 }
 
-
+// This function is heavily modified by AI
 int Connect(lua_State* L)
 {
     luaL_checktype(L, 2, LUA_TFUNCTION);
 
     if (!lua_isLfunction(L, 2))
     {
-        std::cout << "Faulty code! An object which isnt a variable has been passed to :Connect()";
+        std::cout << "Faulty code! An object which isnt a variable has been passed to :Connect()\n";
         return 0;
     }
 
@@ -74,12 +77,29 @@ int Connect(lua_State* L)
     const char* event = lua_tostring(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, "id");
-    const char* id = lua_tostring(L, -1);
+    lua_getfield(L, 1, "_owner");
+    lua_getglobal(L, "game");
+
+    bool found = FindTable(L, -1, -2, "game");
+
+    lua_pop(L, 2);
+
+    if (!found)
+    {
+        lua_getfield(L, 1, "id");
+        file << lua_tostring(L, -1);
+        lua_pop(L, 1);
+    }
+
     lua_pop(L, 1);
 
-    file << "\n" << id << "." << event << ":Connect(function(), {}) -- Functions cannot get captured.\n";
+    file << "." << event << ":Connect(function() end) -- functions being sent to :Connect aren't logged.\n";
 
+    return 0;
+}
+
+int Wait(lua_State* L)
+{
     return 0;
 }
 
@@ -156,40 +176,102 @@ int func(lua_State* L)
     return lua_gettop(L);
 }
 
-void hook(lua_State* L, const char* name)
-{
 
+void ldump(lua_State* L, const char* name) // used for loadstring only!
+{
+    int args = lua_gettop(L);
+
+    loadstringfile << name << "(\"";
+
+    for (int i = 1; i <= args; i++)
+    {
+        const char* str = luaL_tolstring(L, i, nullptr);
+        loadstringfile << str;
+        lua_pop(L, 1);
+
+        if (i < args)
+            loadstringfile << "\", \"";
+    }
+
+    loadstringfile << "\")\n";
+}
+
+
+int lfunc(lua_State* L) // used for loadstring only!
+{
+    int args = lua_gettop(L);
+    const char* name = lua_tostring(L, lua_upvalueindex(1));
+    ldump(L, name);
+
+    std::string originalName = "original_";
+    originalName += name;
+    lua_getglobal(L, originalName.c_str());
+
+    lua_insert(L, 1);
+    lua_pcall(L, args, LUA_MULTRET, 0);
+
+    return lua_gettop(L);
+}
+
+void hook(lua_State* L, const char* name, bool isloadstring = false)
+{
     lua_getglobal(L, name);
     std::string originalName = "original_";
     originalName += name;
     lua_setglobal(L, originalName.c_str());
 
-
     lua_pushstring(L, name);
-    lua_pushcclosure(L, func, name, 1);
+    if (isloadstring)
+        lua_pushcclosure(L, lfunc, "name", 1);
+    else
+        lua_pushcclosure(L, func, name, 1);
+
     lua_setglobal(L, name);
 }
 
-
+// i took some improvements from ai for this function
 int WaitForChild(lua_State* L)
 {
     luaL_checktype(L, 1, LUA_TTABLE);
-
     const char* name = luaL_checkstring(L, 2);
 
     lua_getfield(L, 1, name);
 
-    if (lua_isnil(L, -1))
-    {
-        lua_pop(L, 1);
-        lua_newtable(L);
+    if (!lua_isnil(L, -1))
+        return 1;
 
-        lua_getglobal(L, "SharedMeta");
-        lua_setmetatable(L, -2);
+    lua_pop(L, 1);
 
-        lua_pushvalue(L, -1);
-        lua_setfield(L, 1, name);
-    }
+    lua_pushcfunction(L, InstanceNew, "new");
+    lua_pushstring(L, ("!" + std::string(name)).c_str());
+    lua_call(L, 1, 1);
+
+    lua_pushstring(L, name);
+    lua_pushvalue(L, -2);
+    lua_rawset(L, 1);
+     
+    return 1;
+}
+
+// GPTChat told me to use this function instead for GetService
+int GetService(lua_State* L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+    const char* name = luaL_checkstring(L, 2);
+
+    lua_getfield(L, 1, name);
+
+    if (!lua_isnil(L, -1))
+        return 1;
+
+    lua_pop(L, 1);
+
+    lua_pushcfunction(L, InstanceNew, "new");
+    lua_pushstring(L, ("!" + std::string(name)).c_str());
+    lua_call(L, 1, 1);
+
+    lua_pushvalue(L, -1);
+    lua_setfield(L, 1, name);
 
     return 1;
 }
@@ -314,11 +396,15 @@ void registerGame(lua_State* L)
     lua_pushcfunction(L, WaitForChild, "WaitForChild");
     lua_setfield(L, -2, "WaitForChild");
 
-    lua_pushcfunction(L, WaitForChild, "GetService");
+    lua_pushcfunction(L, GetService, "GetService");
     lua_setfield(L, -2, "GetService");
 
     lua_pushcfunction(L, WaitForChild, "FindFirstChildWhichIsA");
     lua_setfield(L, -2, "FindFirstChildWhichIsA");
+
+    lua_pushcfunction(L, HttpGet, "HttpGet");
+    lua_setfield(L, -2, "HttpGet");
+
 
     lua_newtable(L); // game.StarterGui
     lua_pushcfunction(L, SetCore, "SetCore");
@@ -334,15 +420,18 @@ void registerGame(lua_State* L)
     lua_pushvalue(L, -2);
     lua_setmetatable(L, -2);
 
-    lua_pushcfunction(L, HttpGet, "HttpGet");
-    lua_setfield(L, -2, "HttpGet");
-
     // How does stacking work in this shi??????  I DONT UNDERSTAND LUAU IN C++
     lua_newtable(L); // game.Players
     lua_pushvalue(L, -3);
     lua_setmetatable(L, -2);
 
     lua_newtable(L); // game.Players.LocalPlayer
+    
+    lua_newtable(L); // game.Players.LocalPlayer.Character
+    lua_pushcfunction(L, InstanceNew, "new");
+    lua_pushstring(L, "Character");
+    lua_call(L, 1, 1);
+    lua_setfield(L, -2, "Character");
 
     lua_newtable(L); // game.Players.LocalPlayer.CharacterAdded
     lua_pushcfunction(L, Connect, "Connect");
@@ -350,6 +439,13 @@ void registerGame(lua_State* L)
 
     lua_pushcfunction(L, Connect, "connect");
     lua_setfield(L, -2, "connect");
+
+    lua_pushcfunction(L, Wait, "Wait");
+    lua_setfield(L, -2, "Wait");
+
+    lua_pushcfunction(L, Wait, "wait");
+    lua_setfield(L, -2, "wait");
+
 
     lua_pushstring(L, "CharacterAdded");
     lua_setfield(L, -2, "_eventname");
@@ -394,30 +490,42 @@ bool isColor3(lua_State* L)
         return false;
 }
 
+
+// Made by me at first - used AI for some small modifications to remove Runtime Errors
 bool isUDim2(lua_State* L)
 {
     int table = lua_absindex(L, 3);
 
     lua_getfield(L, table, "X");
-    lua_getfield(L, -1, "Scale");
-    bool hasX = !lua_isnil(L, -1);
-    lua_pop(L, 2);
+    bool hasX = lua_istable(L, -1);
+
+    if (hasX) {
+        lua_getfield(L, -1, "Scale");
+        hasX = !lua_isnil(L, -1);
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
 
     lua_getfield(L, table, "Y");
-    lua_getfield(L, -1, "Scale");
-    bool hasY = !lua_isnil(L, -1);
-    lua_pop(L, 2);
+    bool hasY = lua_istable(L, -1);
 
-    if (hasX && hasY)
-        return true;
-    else
-        return false;
+    if (hasY) {
+        lua_getfield(L, -1, "Scale");
+        hasY = !lua_isnil(L, -1);
+        lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+
+    return hasX && hasY;
 }
 
 int InstanceNew(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
-    
+    bool silent = name[0] == '!';
+    if (silent)
+        name++;
+
     lua_newtable(L);
     int storage = lua_gettop(L);
 
@@ -435,12 +543,37 @@ int InstanceNew(lua_State* L)
 
     lua_pushstring(L, std::string("i" + std::to_string(id)).c_str());
     lua_setfield(L, storage, "id");
-    file << "local i" << std::to_string(id) << " = Instance.new(\"" << name << "\")\n";
+    if (!silent) {
+        if (strcmp(name, "Character") == 0)
+            file << "local i" << std::to_string(id) << " = game.Players.LocalPlayer.Character\n";
+        else if (name[1] == '!')
+            name++;
+        else
+            file << "local i" << std::to_string(id) << " = Instance.new(\"" << name << "\")\n";
+    }
 
     lua_pushvalue(L, storage);
     lua_pushcclosure(L, [](lua_State* L) -> int {
+        // ty gptchat for this nice idea
+        if (lua_isstring(L, 2) && strcmp(lua_tostring(L, 2), "_storage") == 0) {
+            lua_pushvalue(L, lua_upvalueindex(1));
+            return 1;
+        }
+        // that was about all of the idea, just this if
+
         lua_pushvalue(L, 2);
         lua_rawget(L, lua_upvalueindex(1));
+
+        if (!lua_isnil(L, -1))
+            return 1;
+
+        lua_pop(L, 1);
+
+        lua_getglobal(L, "SharedMeta");
+        lua_pushvalue(L, 2);
+        lua_rawget(L, -2);
+        lua_remove(L, -2);
+
         return 1;
         }, "InstanceIndex", 1);
     lua_setfield(L, -2, "__index");
@@ -551,11 +684,24 @@ int InstanceNew(lua_State* L)
 
     lua_setmetatable(L, proxy);
     
+    // Used AI to make the Eventlist because it is alot to do it alone
     const char* connectEvents[] = {
-    "MouseButton1Click",
-    "MouseButton1Down",
-    "MouseButton1Up",
-    "MouseLeave"
+        "MouseButton1Click",
+        "MouseButton1Down",
+        "MouseButton1Up",
+        "MouseLeave",
+        "InputBegan",
+        "InputEnded",
+        "RenderStepped",
+        "Heartbeat",
+        "Stepped",
+        "Died",
+        "CharacterAdded",
+        "CharacterRemoving",
+        "Changed",
+        "AncestryChanged",
+        "Touched",
+        "TouchEnded"
     };
 
     for (const char* eventname : connectEvents)
@@ -570,6 +716,9 @@ int InstanceNew(lua_State* L)
 
         lua_pushstring(L, std::string("i" + std::to_string(id)).c_str());
         lua_setfield(L, -2, "id");
+
+        lua_pushvalue(L, proxy);
+        lua_setfield(L, -2, "_owner");
 
         lua_pushstring(L, eventname);
         lua_setfield(L, -2, "_eventname");
@@ -665,6 +814,8 @@ void Instance(lua_State* L)
 int main()
 {
     file.open("dump.lua");
+    loadstringfile.open("loadstringcalls.lua");
+
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
@@ -672,7 +823,7 @@ int main()
     lua_setglobal(L, "loadstring");
     
     hook(L, "print");
-    hook(L, "loadstring");
+    hook(L, "loadstring", true);
 
     registerEnum(L);
     registerGame(L);
@@ -681,7 +832,7 @@ int main()
     Instance(L);
 
     const char* code = R"(
-    loadstring(game:HttpGet("https://pastebin.com/raw/kHhLTx1x"))()
+    loadstring(game:HttpGet("https://gist.githubusercontent.com/rsdashman/3c17fafca2e3a1a9f6dbf963a5c6f4ba/raw/26cd8fafa1fdc142cba1ade11e68ef25523f34b4/noclip"))()
 )";
 
     size_t bytecodeSize;
