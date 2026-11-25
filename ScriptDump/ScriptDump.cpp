@@ -305,7 +305,7 @@ void registerEnum(lua_State* L)
         "Cartoon", "Code", "Highway", "SciFi",
         "Arcade", "Fantasy", "Antique",
         "SourceSansSemibold",
-        "Gotham", "GothamMedium", "GothamBold", "GothamBlack",
+        "Gotham", "GothamMedium", "GothamBold", "GothamSemibold", "GothamBlack",
         "AmaticSC", "Bangers", "Creepster", "DenkOne",
         "Fondamento", "FredokaOne", "GrenzeGotisch",
         "IndieFlower", "JosefinSans", "Jura", "Kalam",
@@ -314,7 +314,7 @@ void registerEnum(lua_State* L)
         "Roboto", "RobotoCondensed", "RobotoMono",
         "Sarpanch", "SpecialElite", "TitilliumWeb", "Ubuntu",
         "BuilderSans", "BuilderSansMedium", "BuilderSansBold",
-        "BuilderSansExtraBold", "Arimo", "ArimoBold", "GothamSemibold",
+        "BuilderSansExtraBold", "Arimo", "ArimoBold",
         "Unknown"
     };
 
