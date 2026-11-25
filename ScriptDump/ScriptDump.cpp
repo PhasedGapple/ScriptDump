@@ -436,6 +436,17 @@ void registerGame(lua_State* L)
     lua_pushvalue(L, -2);
     lua_setmetatable(L, -2);
 
+    lua_pushcfunction(L, InstanceNew, "new");
+    lua_pushstring(L, "!Workspace"); // game.Workspace
+    lua_call(L, 1, 1);
+
+    lua_pushnumber(L, -500);
+    lua_setfield(L, -2, "FallenPartsDestroyHeight");
+    lua_pushvalue(L, -1); // game.Workspace = Workspace
+    lua_setfield(L, -3, "Workspace");
+    lua_setglobal(L, "workspace");
+
+
     // How does stacking work in this shi??????  I DONT UNDERSTAND LUAU IN C++
     lua_newtable(L); // game.Players
     lua_pushvalue(L, -3);
