@@ -402,6 +402,61 @@ void registerEnum(lua_State* L)
 
     lua_setfield(L, -2, "SortOrder");
 
+    lua_newtable(L); // Enum.HorizontalAlignment
+
+    const char* HZAlignments[] = {
+        "Center", "Left", "Right"
+    };
+
+    for (const char* alignment : HZAlignments)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, alignment);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, alignment);
+    }
+
+    lua_setfield(L, -2, "HorizontalAlignment");
+
+    lua_newtable(L); // Enum.VerticalAlignment
+
+    const char* VAlignments[] = {
+        "Top", "Bottom", "Center"
+    };
+
+    for (const char* alignment : VAlignments)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, alignment);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, alignment);
+    }
+
+    lua_setfield(L, -2, "VerticalAlignment");
+
+    lua_newtable(L); // Enum.StartCorner
+
+    const char* Corners[] = {
+        "TopLeft", "TopRight", "BottomLeft", "BottomRight"
+    };
+
+    for (const char* corner : Corners)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, corner);
+        lua_setfield(L, -2, "Name");
+
+        lua_setfield(L, -2, corner);
+    }
+
+    lua_setfield(L, -2, "StartCorner");
+
+
 
     lua_setglobal(L, "Enum");
 }
