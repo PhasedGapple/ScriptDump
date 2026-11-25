@@ -10,7 +10,7 @@ This has it's own Roblox-Luau replica which logs executed code by adding our own
 - We cannot log if statements or functions, just the code which gets executed.
 - We also dont keep the original variable names.
 ## Compiling
-Make sure you have [VCPKG](https://vcpkg.io/en/) installed. Then run ``vcpkg install luau`` and you are ready to compile. (also run ``vcpkg integrate install`` if its your first time installing vcpkg). Then use your preferred compiler to compile.
+Make sure you have [VCPKG](https://vcpkg.io/en/) installed. Then run ``vcpkg install luau`` and you are ready to compile. (also run ``vcpkg integrate install`` if its your first time installing vcpkg). Then use your preferred compiler to compile using the slnx or vcxproj file. I personally used Visual Studio 2026 with the built-in MSVC compiler.
 ## Running
 Coming soon.
 ## Code used which is not mine
