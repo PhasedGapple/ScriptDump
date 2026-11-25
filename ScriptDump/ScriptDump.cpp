@@ -905,7 +905,7 @@ int InstanceNew(lua_State* L)
     const char* connectEvents[] = {
         "MouseButton1Click",
         "MouseButton1Down",
-        "MouseButton1Up",\
+        "MouseButton1Up",
         "MouseEnter",
         "MouseLeave",
         "InputBegan",
