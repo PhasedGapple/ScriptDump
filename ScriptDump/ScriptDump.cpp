@@ -455,8 +455,17 @@ void registerGame(lua_State* L)
 
     lua_setfield(L, -2, "CharacterAdded");
 
-    lua_pushvalue(L, -4);
+    lua_newtable(L);
+    lua_getglobal(L, "SharedMeta");
+    lua_setfield(L, -2, "__index");
     lua_setmetatable(L, -2);
+
+    lua_getfield(L, -1, "Character");
+    lua_newtable(L);
+    lua_getglobal(L, "SharedMeta");
+    lua_setfield(L, -2, "__index");
+    lua_setmetatable(L, -2);
+    lua_pop(L, 1);
 
     lua_setfield(L, -2, "LocalPlayer");
     lua_setfield(L, -2, "Players");
@@ -832,7 +841,7 @@ int main()
     Instance(L);
 
     const char* code = R"(
-    loadstring(game:HttpGet("https://gist.githubusercontent.com/rsdashman/3c17fafca2e3a1a9f6dbf963a5c6f4ba/raw/26cd8fafa1fdc142cba1ade11e68ef25523f34b4/noclip"))()
+    loadstring(game:HttpGet("https://gist.githubusercontent.com/RedoGaming/2e5943498c487ea97df0d436dd35c234/raw/f0445b1afcd9193bfb94bc75dda7318310a22ad2/Rageflake!%2520New%2520OP%2520Roblox%2520Exploit%2520Hub!"))()
 )";
 
     size_t bytecodeSize;
