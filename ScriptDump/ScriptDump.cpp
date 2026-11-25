@@ -400,6 +400,8 @@ void registerEnum(lua_State* L)
         lua_setfield(L, -2, order);
     }
 
+    lua_setfield(L, -2, "SortOrder");
+
 
     lua_setglobal(L, "Enum");
 }
