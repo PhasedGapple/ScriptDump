@@ -421,6 +421,32 @@ void registerVector2(lua_State* L)
 }
 
 
+int UDim_new(lua_State* L)
+{
+    double scale = luaL_optnumber(L, 1, 0);
+    double offset = luaL_optnumber(L, 2, 0);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, scale);
+    lua_setfield(L, -2, "Scale");
+
+    lua_pushnumber(L, offset);
+    lua_setfield(L, -2, "Offset");
+
+    return 1;
+}
+
+void registerUDim(lua_State* L)
+{
+    lua_newtable(L);
+
+    lua_pushcfunction(L, UDim_new, "new");
+    lua_setfield(L, -2, "new");
+    lua_setglobal(L, "UDim");
+}
+
+
 int GetMouse(lua_State* L)
 {
     lua_newtable(L);
@@ -821,6 +847,27 @@ int Color3fromRGB(lua_State* L)
     return 1;
 }
 
+int Color3new(lua_State* L)
+{
+    double r = luaL_checkinteger(L, 1);
+    double g = luaL_checkinteger(L, 2);
+    double b = luaL_checkinteger(L, 3);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, r);
+    lua_setfield(L, -2, "R");
+
+    lua_pushnumber(L, g);
+    lua_setfield(L, -2, "G");
+
+    lua_pushnumber(L, b);
+    lua_setfield(L, -2, "B");
+
+    return 1;
+}
+
+
 int UDim2new(lua_State* L)
 {
     double xs = luaL_checknumber(L, 1);
@@ -854,6 +901,9 @@ void registerColor3(lua_State* L)
 
     lua_pushcfunction(L, Color3fromRGB, "fromRGB");
     lua_setfield(L, -2, "fromRGB");
+
+    lua_pushcfunction(L, Color3new, "new");
+    lua_setfield(L, -2, "new");
 
     lua_setglobal(L, "Color3");
 }
@@ -898,6 +948,7 @@ int main()
     registerEnum(L);
     registerGame(L);
     registerColor3(L);
+    registerUDim(L);
     registerUDim2(L);
     registerVector2(L);
     Instance(L);
