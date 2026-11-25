@@ -6,7 +6,8 @@ This has it's own Roblox-Luau replica which logs executed code by adding our own
 - To demonstrate it mostly working: https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt
 - To see as an example what doesnt get dumped: https://gist.github.com/RedoGaming/2e5943498c487ea97df0d436dd35c234
 ## Downsides / Limitations
-- It would be too time consuming to implement every function, so only the more simpler scripts will dump flawlessly.
+- It would be too time consuming to implement every function, so only the more simpler scripts will dump flawlessly. **But because of this, I made sure that the code is easy to modify so you can do it yourself if you feel like it.**
+- There is no UNC or sUNC implementation due to the other limitations making this basically useless.
 - Most external UI Libraries aren't supported, make sure your script has it built-in.
 - We cannot log if statements or functions, just the code which gets executed.
 - We also dont keep the original variable names.
