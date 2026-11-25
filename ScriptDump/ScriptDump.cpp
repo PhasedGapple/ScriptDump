@@ -10,7 +10,6 @@
 #include <cstring>
 #include <iterator>
 
-
 std::ofstream file;
 std::ofstream loadstringfile;
 
@@ -580,7 +579,7 @@ int Vector2_new(lua_State* L)
     lua_pushnumber(L, x);
     lua_setfield(L, -2, "X");
 
-    lua_pushnumber(L, y);
+    lua_pushnumber(L, x);
     lua_setfield(L, -2, "Y");
 
     return 1;
