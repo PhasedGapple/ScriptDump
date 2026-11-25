@@ -330,6 +330,21 @@ void registerEnum(lua_State* L)
     
     lua_setfield(L, -2, "Font");
 
+    lua_newtable(L); // Enum.ScaleType
+
+    const char* ScaleTypes[] = {
+        "Stretch", "Slice", "Tile", "Fit", "Crop"
+    };
+
+    for (const char* ScaleType : ScaleTypes)
+    {
+        lua_newtable(L);
+
+        lua_pushstring(L, ScaleType);
+        lua_setfield(L, -2, "Name");
+        
+        lua_setfield(L, -2, ScaleType);
+    }
 
     lua_setglobal(L, "Enum");
 }
