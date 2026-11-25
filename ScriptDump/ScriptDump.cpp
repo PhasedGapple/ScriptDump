@@ -485,7 +485,7 @@ void registerEnum(lua_State* L)
         lua_setfield(L, -2, Key);
     }
 
-    lua_setfield(L, -2, "KeyCode")
+    lua_setfield(L, -2, "KeyCode");
 
     lua_setglobal(L, "Enum");
 }
@@ -686,6 +686,9 @@ void registerGame(lua_State* L)
     lua_setglobal(L, "SharedMeta");
     lua_pushcfunction(L, WaitForChild, "WaitForChild");
     lua_setfield(L, -2, "WaitForChild");
+
+    lua_pushcfunction(L, WaitForChild, "FindFirstChild");
+    lua_setfield(L, -2, "FindFirstChild");
 
     lua_pushcfunction(L, GetService, "GetService");
     lua_setfield(L, -2, "GetService");
